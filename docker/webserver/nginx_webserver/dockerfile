@@ -1,0 +1,10 @@
+FROM nginx:alpine
+
+# Copy the index.html file into the Nginx default directory in the container.
+COPY index.html /usr/share/nginx/html/
+
+# Expose the HTTP port to allow the flow of traffic
+EXPOSE 80
+
+# Run Nginx in the foreground to ensure that the container remains active.
+CMD ["nginx", "-g", "daemon off;"]
