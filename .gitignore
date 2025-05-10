@@ -38,3 +38,7 @@ terraform.rc
 
 # Ignore keypairs
 .pem
+
+# Ignore Ansible private files
+./ansible/ansible.cfg
+./hosts
