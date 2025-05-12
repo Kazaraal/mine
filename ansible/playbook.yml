@@ -1,0 +1,170 @@
+---
+- name: Setting up Kubernetes nodes
+  hosts: all
+  vars_files:
+    - vars.yml
+
+# Update and upgrade the os
+  tasks:
+  - name: Update and upgrade the nodes
+    ansible.builtin.apt:
+      upgrade: dist
+      update_cache: yes
+
+# Check if the os needs rebooting and reboot if necessary 
+  - name: Check if a reboot is required.
+    ansible.builtin.stat:
+      path: /var/run/reboot-required
+      get_checksum: no
+    register: reboot_required_file
+
+  - name: Reboot the server (if required).
+    ansible.builtin.reboot:
+    when: reboot_required_file.stat.exists == true
+
+# And then remove unnecessary dependencies
+  - name: Remove dependencies that are no longer required.
+    ansible.builtin.apt:
+      autoremove: yes
+
+##################### INSTALLING DOCKER #####################
+
+# Install required system packages for Docker
+  - name: Install required system packages
+    ansible.builtin.apt:
+      pkg:
+        - apt-transport-https
+        - ca-certificates
+        - curl
+        - wget
+        - software-properties-common
+        - python3
+        - python3-pip
+        - python3-setuptools
+        - virtualenv
+      state: latest
+      update_cache: true
+
+# Get the GPG apt key
+  - name: Add Docker GPG apt key
+    ansible.builtin.apt_key:
+      url: https://download.docker.com/linux/raspbian/gpg
+      state: present
+
+# Get the Docker repository
+  - name: Add the Docker repository
+    ansible.builtin.apt_repository:
+      repo: deb https://download.docker.com/linux/raspbian bookworm stable
+      state: present
+
+# Update the local repositories and install docker-ce
+  - name: Update apt and install docker.io
+    ansible.builtin.apt:
+      name: docker.io
+      state: latest
+      update_cache: true
+
+####################### INSTALLING KUBERNETES #######################
+# Enable c-groups so the kubelet will work out of the box.
+# Modify the configuration file /boot/firmware/cmdline.txt
+# By adding the below options
+# cgroup_enable=memory cgroup_memory=1
+
+  - name: Ensure cgroup options exist in cmdline.txt
+    ansible.builtin.lineinfile:
+      path: /boot/firmware/cmdline.txt
+      backrefs: yes
+      regexp: '^(.*)$'
+      line: '\1 cgroup_enable=memory cgroup_memory=1'
+
+
+# Reboot machines 
+  - name: Reboot the server.
+    ansible.builtin.reboot:
+      msg: "Rebooting machine in 5 seconds"
+      reboot_timeout: 3600
+      test_command: "whoami"
+
+# Install snapd
+  - name: Install snapd
+    ansible.builtin.apt:
+      pkg:
+        - snapd
+
+# Refresh Snapd from Snap itself (even if installed via apt)
+  - name: Ensure snap core is installed and snapd is refreshed
+    become: true
+    ansible.builtin.shell: |
+      snap install snapd
+      snap install core
+      snap refresh snapd
+    args:
+      creates: /snap/core  # Prevents re-running if already installed
+
+# Install the MicroK8s snap:
+  - name: Install MicroK8s snap
+    community.general.snap:
+      name: microk8s
+      classic: true
+
+# The current user needs to be added to the microk8s group
+  - name: Add current user to "microk8s" group
+    ansible.builtin.user:
+      name: "{{ ansible_user_id }}"
+      groups: microk8s
+      append: yes
+
+# Reboot the system if reboot_after_group_change is true
+  - name: Reboot the system if reboot_after_group_change is true
+    become: true
+    ansible.builtin.reboot:
+      msg: "Reboot after group change: {{ reboot_after_group_change }} "
+    
+
+# Change ownership of ~/.kube directory
+  - name: Change ownership of ~/.kube to the current user
+    become: true
+    ansible.builtin.file:
+      path: "/home/{{ ansible_user_id }}/.kube"
+      state: directory
+      recurse: yes
+      owner: "{{ ansible_user_id }}"
+      group: "{{ ansible_user_gid | default(ansible_user_id) }}"
+
+# It's best to wait until microk8s is truely ready for the next step
+  - name: Wait for MicroK8s to become ready
+    ansible.builtin.shell: |
+      microk8s status --wait-ready
+    retries: 100
+    delay: 5
+    register: microk8s_status
+    until: microk8s_status.rc == 0
+
+####################### CONTROL PANEL / MASTER NODE ####################
+
+- name: Bootstrap microk8s master nodes
+  hosts: jefe
+  become: true
+  tasks:
+
+# This enables common MicroK8s add-ons (DNS and storage)
+  - name: Enable common microk8s add-ons (DNS and storage)
+    ansible.builtin.shell: |
+      microk8s enable dns storage
+    args:
+      creates: /var/snap/microk8s/common/default-storage
+
+# Generate the join token
+  - name: Generate join token
+    ansible.builtin.shell: microk8s add-node --token-ttl 3600 --token "araal_token"
+    register: join_command
+
+# Print out the join token
+  - name: Show join command
+    ansible.builtin.debug:
+      var: join_command.stdout_lines
+
+# Set the join command as a host fact
+  - name: Set join command as a host fact
+    ansible.builtin.set_fact:
+      microk8s_join_command: "{{ join_command.stdout_lines | select('match', '^microk8s join') | list | first }}"

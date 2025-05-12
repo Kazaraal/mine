@@ -1,0 +1,2 @@
+# Get the os details
+ansible all -m shell -a "cat /etc/os-release" -u ken
