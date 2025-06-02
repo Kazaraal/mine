@@ -1,11 +1,14 @@
 [master]
-jefe    ansible_host=192.168.1.57
+jefe    ansible_host=192.168.1.243      ansible_user=ken
 
 [workers]
-w1      ansible_host=192.168.1.37
-w2      ansible_host=192.168.1.217
-w3      ansible_host=192.168.1.129
-w4      ansible_host=192.168.1.243
-w5      ansible_host=192.168.1.48
-w6      ansible_host=192.168.1.45
+w1      ansible_host=192.168.1.48       ansible_user=ken
+w2      ansible_host=192.168.1.57       ansible_user=ken
+w3      ansible_host=192.168.1.45       ansible_user=ken
 
+
+
+# jefe    192.168.1.243
+# w1      192.168.1.48
+# w2      192.168.1.57
+# w3      192.168.1.45
