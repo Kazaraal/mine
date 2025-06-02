@@ -1,2 +1,62 @@
-# Get the os details
+# Display the os details
 ansible all -m shell -a "cat /etc/os-release" -u ken
+
+# Display all users
+ansible  all -m shell -a "cut -d ":" -f 1 /etc/passwd" -u ken
+
+# Display all groups
+ansible  all -m shell -a "groups" -u ken
+
+# You must reset the node before reinitializing
+# Use this before re-running kubeadm init
+sudo kubeadm reset -f
+sudo rm -rf /etc/cni/net.d
+sudo rm -rf $HOME/.kube
+sudo rm -rf /var/lib/etcd
+sudo systemctl restart containerd
+
+# Ping the nodes
+ansible all -m ping 
+
+# Get hostnames
+ansible all -m shell -a "hostname" -u ken
+
+# List what commands the current user can run with sudo
+ansible all -m shell -a "sudo -l" -kK
+
+# Installing docker manually (without Ansible)
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+echo \
+ "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
+ $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+ sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+sudo apt install docker-ce docker-ce-cli containerd.io -y
+
+# Configure /etc/containerd/config.toml
+sudo sh -c "containerd config default > /etc/containerd/config.toml"
+sudo sed -i 's/ SystemdCgroup = false/ SystemdCgroup = true/' /etc/containerd/config.toml
+sudo systemctl restart containerd.service
+sudo systemctl status containerd.service
+
+# Download kubernetes key and repo
+curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.31/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.33/deb/ /" | sudo tee /etc/apt/sources.list.d/kubernetes.list
+sudo apt update
+
+# Install kubelet kubeadm kubectl
+sudo apt install kubelet kubeadm kubectl -y
+
+# Initialize the Kubernetes cluster on the master node
+sudo kubeadm init --pod-network-cidr=10.10.0.0/16
+kubectl create -f https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/tigera-operator.yaml
+curl https://raw.githubusercontent.com/projectcalico/calico/v3.28.0/manifests/custom-resources.yaml -O
+sed -i 's/cidr: 192\.168\.0\.0\/16/cidr: 10.10.0.0\/16/g' custom-resources.yaml
+kubectl create -f custom-resources.yaml
+kubectl get nodes
+
+# Add worker nodes to the cluster
+sudo kubeadm join 192.168.1.243:6443 --token 8bg67o.pe6k81rwqt8if644 \
+	--discovery-token-ca-cert-hash sha256:861175b56ca0de0bb7969fc5aec37655fe65e1c3b569c092e86ddd52fb1e7374 
