@@ -1,0 +1,13 @@
+---
+- name: Ensure overlay and br_netfilter modules are loaded
+  hosts: all
+  become: true
+  vars_files:
+    - /home/ken/Desktop/mine/ansible/env_variables.yaml
+
+  tasks:
+    - name: Install Docker prerequisite packages
+      ansible.builtin.apt:
+        pkg: "{{ docker_prerequisites }}"
+        state: latest
+        update_cache: true

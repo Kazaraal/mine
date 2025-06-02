@@ -1,0 +1,45 @@
+---
+- name: Validate kernel modules are loaded
+  hosts: all
+  become: true
+  vars_files:
+    - /home/ken/Desktop/mine/ansible/env_variables.yaml
+
+  tasks:
+    - name: Check if each kernel module is loaded
+      ansible.builtin.shell: grep -w "^{{ item }}" /proc/modules
+      loop: "{{ kernel_modules_required }}"
+      register: module_check
+      changed_when: false
+      ignore_errors: true
+
+    - name: Extract missing modules from check results
+      ansible.builtin.set_fact:
+        missing_kernel_modules: >-
+          {{ module_check.results
+              | selectattr('rc', 'ne', 0)
+              | map(attribute='item')
+              | list }}
+
+    - name: Load missing kernel modules
+      ansible.builtin.modprobe:
+        name: "{{ item }}"
+        state: present
+      loop: "{{ missing_kernel_modules }}"
+
+    - name: Recheck if each kernel module is loaded
+      ansible.builtin.shell: grep -w "^{{ item }}" /proc/modules
+      loop: "{{ kernel_modules_required }}"
+      register: module_check
+      changed_when: false
+      ignore_errors: true
+
+    - name: Fail if any required kernel modules are missing
+      ansible.builtin.fail:
+        msg: "These modules could not be loaded"
+      when: module_check.results | selectattr('rc', 'ne', 0) | list | length > 0
+
+    - name: Report which modules failed to load
+      ansible.builtin.debug:
+        msg: "Module '{{ item.item }}' not loaded."
+      loop: "{{ module_check.results | selectattr('rc', 'ne', 0) | list }}"

@@ -1,0 +1,36 @@
+- name: Verify swap is fully disabled
+  hosts: all
+  become: true
+  tasks:
+
+    - name: Check for active swap
+      command: swapon --noheadings --summary
+      register: swap_check
+      changed_when: false
+      failed_when: false
+
+    - name: Fail if any active swap is found
+      fail:
+        msg: "Active swap detected: {{ swap_check.stdout }}"
+      when: swap_check.stdout != ""
+
+    - name: Check for swap entries in /etc/fstab
+      shell: grep -E '^\s*[^#].*\s+swap\s+swap\s+' /etc/fstab
+      register: fstab_swap
+      changed_when: false
+      failed_when: false
+
+    - name: Fail if /etc/fstab has a swap entry
+      fail:
+        msg: "/etc/fstab contains a swap entry: {{ fstab_swap.stdout }}"
+      when: fstab_swap.stdout != ""
+
+    - name: Check if swapfile exists
+      stat:
+        path: /swapfile
+      register: swapfile_check
+
+    - name: Fail if /swapfile exists
+      fail:
+        msg: "/swapfile exists on disk"
+      when: swapfile_check.stat.exists

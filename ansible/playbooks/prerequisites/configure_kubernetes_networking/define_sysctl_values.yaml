@@ -1,0 +1,25 @@
+---
+- name: Ensure overlay and br_netfilter modules are loaded
+  hosts: all
+  become: true
+  vars_files:
+    - /home/ken/Desktop/mine/ansible/env_variables.yaml
+
+  tasks:
+    - name: Write Kubernetes sysctl settings
+      ansible.builtin.sysctl:
+        name: "{{ item }}"
+        value: "1"
+        sysctl_file: /etc/sysctl.d/k8s.conf
+        state: present
+      loop: "{{ k8s_sysctl_settings }}"
+
+    - name: Apply sysctl parameters immediately
+      ansible.builtin.command: sysctl --system
+
+    - name: Validate sysctl settings are active
+      ansible.builtin.shell: sysctl -n {{ item }}
+      loop: "{{ k8s_sysctl_settings }}"
+      register: sysctl_result
+      changed_when: false
+      failed_when: sysctl_result.stdout != "1" 
