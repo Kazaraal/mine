@@ -1,0 +1,60 @@
+# I installed the node exporter on all my rpis
+
+########### NODE EXPORTER #########
+# Downloaded node-exporter
+wget https://github.com/prometheus/node_exporter/releases/download/v1.9.1/node_exporter-1.9.1.linux-arm64.tar.gz
+
+# Unzip
+tar xvfz node_exporter-1.9.1.linux-arm64.tar.gz
+
+# Deleted .tar.gz file
+rm node_exporter-1.9.1.linux-arm64.tar.gz
+
+# Move into node_exporter folder and copy the binary to /usr/local/bin
+cd node_exporter-1.9.1.linux-arm64
+sudo cp node_exporter /usr/local/bin
+
+# Create a dedicated user to run node_exporter
+sudo useradd --no-create-home --shell /bin/false node_exporter
+
+# Assign ownership permissions of the node_exporter binary to this user
+sudo chown node_exporter:node_exporter /usr/local/bin/node_exporter
+
+# Configure systemd to ensure node_exporter auto-starts on server reboot
+sudo nano /etc/systemd/system/node_exporter.service
+
+# Paste in this configuration
+[Unit]
+Description=Node Exporter
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=node_exporter
+Group=node_exporter
+Type=simple
+ExecStart=/usr/local/bin/node_exporter
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target
+
+# Reload the systemd daemon
+sudo systemctl daemon-reload
+
+# Enable and start the node_exporter service
+sudo systemctl enable --now node_exporter
+
+# Confirm service is running and enabled
+sudo systemctl status node_exporter.service
+
+# I then created a folder called monitoring to store all the code I'm to create
+# my monitoring system.
+# I created a prometheus folder in which I put the prometheus.yml file. This file
+# contains the configuration for the prometheus software.
+# I created the docker-compose.yml file which has the configurations of the 
+# prometheus and grafana containers.
+# So in conclusion, the prometheus.yml file has the configuration that collects
+# information from the node exporters on the rpis, which then makes prometheus 
+# the source of the metrics of the grafana dashboards.
