@@ -1,9 +1,0 @@
-FROM ubuntu
-
-# Update the os and install Apache2 and Apache2-utils
-RUN apt-get update && apt-get install apache2 apache2-utils -y && apt-get clean
-
-# Expose the HTTP port
-EXPOSE 80
-
-CMD ["apache2ctl", "-D", "FOREGROUND"]
