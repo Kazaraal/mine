@@ -43,3 +43,7 @@ terraform.rc
 # Ignore Ansible private files
 ./ansible/ansible.cfg
 ./hosts
+
+# My working scripts and answers
+all_files
+list_&_cat_files.sh
