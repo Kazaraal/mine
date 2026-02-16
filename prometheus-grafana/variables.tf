@@ -35,3 +35,15 @@ variable "node1" {
 variable "node2" {
   type          = string
 }
+
+variable "mounted_logical_volume" {
+  type        = string
+}
+
+variable "prometheus_data_volume" {
+  type        = string
+}
+
+variable "grafana_data_volume" {
+  type        = string
+}
