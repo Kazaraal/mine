@@ -1,7 +1,7 @@
 resource "kubernetes_config_map" "grafana-datasource" {
   metadata {
     name = "grafana-datasource"
-    namespace = kubernetes_namespace.monitoring.metadata[0].name
+    namespace = kubernetes_namespace_v1.monitoring.metadata[0].name
     labels = {
       app = "grafana"
     }
