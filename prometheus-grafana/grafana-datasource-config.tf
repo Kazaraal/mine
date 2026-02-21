@@ -15,7 +15,7 @@ datasources:
   -  name: Prometheus
      type: prometheus
      access: proxy
-     url: http://prometheus:9090
+     url: http://prometheus-svc:9090
      isDefault: true
 EOF
   }

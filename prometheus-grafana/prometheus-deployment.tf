@@ -25,12 +25,15 @@ resource "kubernetes_deployment_v1" "prometheus" {
       }
 
       spec {
+        security_context {
+          fs_group = 1000   # Prometheus' group ID
+        }
         container {
           name = "prometheus"
           image = "prom/prometheus:v3.5.1"
 
           args = [
-            "--config.file=/etc/prometheus/prometheus.yml",
+            "--config.file=/etc/prometheus/prometheus.yaml",
             "--storage.tsdb.path=/prometheus",
             "--web.enable-lifecycle",
           ]

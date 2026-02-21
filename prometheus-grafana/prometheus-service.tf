@@ -12,9 +12,10 @@ resource "kubernetes_service_v1" "prometheus-svc" {
     }
 
     port {
+      name = "http"
       port = 9090
       target_port = 9090
-      protocol = "http"
+      protocol = "TCP"
     }
 
     type = "NodePort"

@@ -24,9 +24,12 @@ resource "kubernetes_deployment_v1" "grafana-deployment" {
       }
 
       spec {
+        security_context {
+          fs_group = 472    # Grafana's group ID
+        }
         container {
           name = "grafana"
-          image = "grafana/grafana:nightly"
+          image = "grafana/grafana:12.4.0-22081664032-ubuntu"
 
           port {
             name = "http"
@@ -52,7 +55,7 @@ resource "kubernetes_deployment_v1" "grafana-deployment" {
         volume {
           name = "datasource"
           config_map {
-            name = kubernetes_config_map_v1.grafana_datasource.metadata[0].name
+            name = kubernetes_config_map_v1.grafana-datasource.metadata[0].name
           }
         }
 
