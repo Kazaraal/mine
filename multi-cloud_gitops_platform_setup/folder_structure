@@ -1,27 +1,44 @@
 multi-cloud_gitops_platform_setup/
-├── modules/
-│   ├── eks/
-│   │   ├── main.tf
-│   │   ├── variables.tf
-│   │   ├── outputs.tf
-│   │   └── README.md
-│   └── aks/
-│       ├── main.tf
-│       ├── variables.tf
-│       ├── outputs.tf
-│       └── README.md
-├── environments/
-│   ├── aws/
-│   │   ├── main.tf
-│   │   ├── variables.tf
-│   │   ├── outputs.tf
-│   │   ├── terraform.tfvars   (or .auto.tfvars)
-│   │   └── backend.tf          (S3 backend config)
-│   └── azure/
-│       ├── main.tf
-│       ├── variables.tf
-│       ├── outputs.tf
-│       ├── terraform.tfvars
-│       └── backend.tf          (Azure Storage backend config)
-├── scripts/                     (optional helper scripts)
-└── README.md
+|---bootstrap
+|   |---aws/
+|   |    |---main.tf
+|   |    |---variables.tf
+|   |    |---outputs.tf
+|   |    |---terraform.tfvars
+|   |
+|   |---azure/
+|        |---main.tf
+|        |---variables.tf
+|        |---outputs.tf
+|        |---terraform.tfvars
+|
+|---modules/
+│   |---eks/
+│   │   |---main.tf
+│   │   |---variables.tf
+│   │   |---outputs.tf
+│   │   |---README.md
+|   |
+│   |---aks/
+│       |---main.tf
+│       |---variables.tf
+│       |---outputs.tf
+│       |---README.md
+|
+|---environments/
+│   |---aws/
+│   │   |---main.tf
+│   │   |---variables.tf
+│   │   |---outputs.tf
+│   │   |---terraform.tfvars   (or .auto.tfvars)
+│   │   |---backend.tf          (S3 backend config)
+|   |
+│   |---azure/
+│       |---main.tf
+│       |---variables.tf
+│       |---outputs.tf
+│       |---terraform.tfvars
+│       |---backend.tf          (Azure Storage backend config)
+|
+|---scripts/                     (optional helper scripts)
+|---README.md
