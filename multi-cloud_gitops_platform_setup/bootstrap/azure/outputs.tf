@@ -1,0 +1,17 @@
+# multi-cloud_gitops_platform_setup/bootstrap/azure/outputs.tf
+output "resource_group_name" {
+  value = azurerm_resource_group.state_rg.name
+}
+
+output "storage_account_name" {
+  value = azurerm_storage_account.state_sa.name
+}
+
+output "container_name" {
+  value = azurerm_storage_container.state_container.name
+}
+
+output "primary_access_key" {
+  value     = azurerm_storage_account.state_sa.primary_access_key
+  sensitive = true
+}
