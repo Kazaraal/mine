@@ -3,7 +3,7 @@ terraform {
     key = "eks-cluster/terraform.tfstate"
     region = "eu-west-2"
     encrypt = true
-    use_lockfile = true
+    use_lockfile = true  # Enables S3 native locking (Terraform 1.11+)
     # bucket = provided via -backend-config or file
   }
 }
