@@ -13,7 +13,7 @@ terraform {
 # When initializing, you'll provide the values:
 # cd environments/azure
 # terraform init \
-#   -backend-config="resource_group_name=terraform-state-rg" \
-#   -backend-config="storage_account_name=multicloudtfstate12345" \
+#   -backend-config="resource_group_name=ken-terraform-state-rg" \
+#   -backend-config="storage_account_name=kenmulticloudtfstate" \
 #   -backend-config="container_name=tfstate" \
-#   -backend-config="access_key=..."
+#   -backend-config="access_key=primary_access_key"  #"use_azuread_auth=true"     

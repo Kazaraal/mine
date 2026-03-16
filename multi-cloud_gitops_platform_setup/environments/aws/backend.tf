@@ -11,10 +11,10 @@ terraform {
 
 # When initializing the main AWS environment, you'll run:
 # cd environments/aws
-# terraform init -backend-config="bucket=my-multi-cloud-tfstate-unique123"
+# terraform init -backend-config="bucket=ken-aws-multi-cloud-tfstate-unique-bucket"
 
 # OR
 
 # Create a file backend.hcl with:
-# 'bucket = "my-multi-cloud-tfstate-unique123"'
+# 'bucket = "ken-aws-multi-cloud-tfstate-unique-bucket"'
 # And then use terraform init -backend-config=backend.hcl.

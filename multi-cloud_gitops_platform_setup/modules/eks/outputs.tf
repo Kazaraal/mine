@@ -10,10 +10,10 @@ output "cluster_endpoint" {
   value         = aws_eks_cluster.this.endpoint
 }
 
-output "kubeconfig_certificate_authority_data" {
-  description   = "Base64 encoded certificate data required to communicate with the cluster"
-  value         = aws_eks_cluster.this.certificate_authority[9].data
-}
+# output "kubeconfig_certificate_authority_data" {
+#   description   = "Base64 encoded certificate data required to communicate with the cluster"
+#   value         = aws_eks_cluster.this.certificate_authority[9].data
+# }
 
 output "cluster_name" {
   description   = "Kubernetes Cluster Name"
