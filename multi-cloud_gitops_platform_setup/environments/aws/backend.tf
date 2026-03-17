@@ -1,10 +1,10 @@
 # multi-cloud_gitops_platform_setup/environments/aws/backend.tf
 terraform {
   backend "s3" {
-    key           = "eks-cluster/terraform.tfstate"
-    region        = "eu-west-2"
-    encrypt       = true
-    use_lockfile  = true  # Enables S3 native locking (Terraform 1.11+)
+    key          = "eks-cluster/terraform.tfstate"
+    region       = "eu-west-2"
+    encrypt      = true
+    use_lockfile = true # Enables S3 native locking (Terraform 1.11+)
     # bucket      = provided via -backend-config or file
   }
 }
